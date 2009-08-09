@@ -1,0 +1,28 @@
+From ee268740fc54b04af383b7b77afc92c6f835e3bd Mon Sep 17 00:00:00 2001
+From: Chris Goffinet <goffinet@digg.com>
+Date: Sun, 9 Aug 2009 00:18:58 -0700
+Subject: [PATCH] Fix for only 1 split in LZO compressed file
+
+---
+ .../apache/hadoop/mapred/LzoTextInputFormat.java   |    5 +++++
+ 1 files changed, 5 insertions(+), 0 deletions(-)
+
+diff --git a/src/mapred/org/apache/hadoop/mapred/LzoTextInputFormat.java b/src/mapred/org/apache/hadoop/mapred/LzoTextInputFormat.java
+index 9034636..f74ba10 100644
+--- a/src/mapred/org/apache/hadoop/mapred/LzoTextInputFormat.java
++++ b/src/mapred/org/apache/hadoop/mapred/LzoTextInputFormat.java
+@@ -135,6 +135,11 @@ public class LzoTextInputFormat extends FileInputFormat<LongWritable, Text>
+       long newEnd = index.findNextPosition(end);
+       if (newEnd != -1) {
+         end = newEnd;
++      } else if(start == 0) {
++        //we are processing the first split and it seems there is only one lzo
++        //chunk in this file, we should read the file as one split
++        FileStatus status = fs.getFileStatus(file);
++        end = status.getLen();
+       }
+ 
+       result.add(new FileSplit(file, start, end - start, fileSplit
+-- 
+1.5.6
+
